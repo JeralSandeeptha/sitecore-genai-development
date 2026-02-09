@@ -19,7 +19,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: "jeral"
       MONGO_INITDB_ROOT_PASSWORD: "1234"
-  mongo_express:
+  mongo-express:
     container_name: mongo_express_containerr
     image: mongo-express:latest
     restart: always
@@ -60,6 +60,25 @@ services:
         - /app/node_modules
     depends_on:
       - mongodb
+  gateway-service:
+    container_name: gateway_container
+    restart: always
+    build:
+      context: ../../sitecore-genai-gateway
+      dockerfile: Dockerfile.dev
+    ports:
+      - "6000:6000"
+    environment:
+      - PORT=6000
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:5173
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - DOMAIN=undefined
+      - BASE_URL=http://localhost:5173
+    volumes:
+        - ../../sitecore-genai-gateway:/app
+        - /app/node_modules
   knowledge-service:
     build:
       context: ../../sitecore-genai-knowledge
@@ -75,11 +94,11 @@ services:
       - ../../sitecore-genai-knowledge:/app
     depends_on:
       - qdrant
-  backend:
-    container_name: backend_container
+  ai-service:
+    container_name: ai_container
     restart: always
     build:
-      context: ../../sitecore-genai-backend
+      context: ../../sitecore-genai-ai
       dockerfile: Dockerfile.dev
     ports:
       - "6001:6001"
@@ -92,21 +111,7 @@ services:
       - WATCHPACK_POLLING=true
       - V0_API_KEY=${V0_API_KEY}
     volumes:
-        - ../../sitecore-genai-backend:/app
-        - /app/node_modules
-  cli_client:
-    container_name: client_container
-    restart: always
-    build:
-      context: ../../sitecore-genai-cli
-      dockerfile: Dockerfile.dev
-    environment:
-      - NODE_ENV=development
-      - BASE_URL=http://localhost:5173
-      - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true
-    volumes:
-        - ../../sitecore-genai-cli:/app
+        - ../../sitecore-genai-ai:/app
         - /app/node_modules
   frontend:
     container_name: frontend_container
