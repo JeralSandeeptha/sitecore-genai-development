@@ -87,7 +87,7 @@ services:
     environment:
       - "QDRANT_URL=http://localhost:6333"
       - "QDRANT_API_KEY=${QDRANT_API_KEY}"
-      - "ACCESS_TOKEN=${ACCESS_TOKEN}"
+      - "GITHUB_PERSONAL_ACCESS_TOKEN=${GITHUB_PERSONAL_ACCESS_TOKEN}"
       - "OPENAI_API_KEY=${OPENAI_API_KEY}"
     volumes:
       - ../../sitecore-genai-knowledge:/app
