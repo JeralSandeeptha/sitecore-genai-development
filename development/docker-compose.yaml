@@ -45,14 +45,12 @@ services:
       context: ../../sitecore-genai-users
       dockerfile: Dockerfile.dev
     ports:
-      - "6002:6002"
+      - "5001:5001"
     environment:
-      - PORT=6002
+      - PORT=5001
       - NODE_ENV=development
-      - VITE_API_URL=http://localhost:5173
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
-      - DOMAIN=undefined
       - BASE_URL=http://localhost:5173
       - DATABASE_URL=mongodb://jeral:1234@mongodb:27017/users_db?authSource=admin
     volumes:
@@ -67,15 +65,16 @@ services:
       context: ../../sitecore-genai-gateway
       dockerfile: Dockerfile.dev
     ports:
-      - "6000:6000"
+      - "5000:5000"
     environment:
-      - PORT=6000
+      - PORT=5000
       - NODE_ENV=development
-      - VITE_API_URL=http://localhost:5173
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
-      - DOMAIN=undefined
       - BASE_URL=http://localhost:5173
+      - AI_SERVICE_URL=http://ai-service:5002
+      - USER_SERVICE_URL=http://users-service:5001
+      - KNOWLEDGE_SERVICE_URL=http://knowledge-service:5003
     volumes:
         - ../../sitecore-genai-gateway:/app
         - /app/node_modules
@@ -84,7 +83,7 @@ services:
       context: ../../sitecore-genai-knowledge
       dockerfile: Dockerfile.dev
     ports:
-      - "8000:8000"
+      - "5003:5003"
     environment:
       - "QDRANT_URL=http://localhost:6333"
       - "QDRANT_API_KEY=${QDRANT_API_KEY}"
@@ -101,14 +100,14 @@ services:
       context: ../../sitecore-genai-ai
       dockerfile: Dockerfile.dev
     ports:
-      - "6001:6001"
+      - "5002:5002"
     environment:
-      - PORT=6001
+      - PORT=5002
       - NODE_ENV=development
-      - VITE_API_URL=http://localhost:5173
-      - KNOWLEDGE_API_URL=http://knowledge-service:8000
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
+      - BASE_URL=http://localhost:5173
+      - KNOWLEDGE_API_URL=http://knowledge-service:5003
       - V0_API_KEY=${V0_API_KEY}
     volumes:
         - ../../sitecore-genai-ai:/app
@@ -123,7 +122,7 @@ services:
       - "5173:5173"
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://localhost:6001
+      - VITE_API_URL=http://localhost:5000
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
       - FAST_REFRESH=true
