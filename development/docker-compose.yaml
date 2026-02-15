@@ -87,6 +87,7 @@ services:
       - AI_SERVICE_URL=http://ai-service:5002
       - USER_SERVICE_URL=http://users-service:5001
       - KNOWLEDGE_SERVICE_URL=http://knowledge-service:5003
+      - CODE_GEN_SERVICE_URL=http://code-generator-service:5004
     volumes:
         - ../../sitecore-genai-gateway:/app
         - /app/node_modules
@@ -121,10 +122,32 @@ services:
       - BASE_URL=http://localhost:5173
       - KNOWLEDGE_API_URL=http://knowledge-service:5003
       - GATEWAY_SERVICE_URL=http://gateway-service:5000
+      - RABBITMQ_SERVICE_URL=amqp://jeral:1234@rabbitmq:5672
       - V0_API_KEY=${V0_API_KEY}
     volumes:
         - ../../sitecore-genai-ai:/app
         - /app/node_modules
+  code-generator-service:
+    container_name: code-generator-service
+    restart: always
+    build:
+      context: ../../sitecore-genai-code-generate
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5004:5004"
+    environment:
+      - PORT=5004
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - BASE_URL=http://localhost:5173
+      - KNOWLEDGE_API_URL=http://knowledge-service:5003
+      - GATEWAY_SERVICE_URL=http://gateway-service:5000
+      - RABBITMQ_SERVICE_URL=amqp://jeral:1234@rabbitmq:5672
+      - V0_API_KEY=${V0_API_KEY}
+    volumes:
+      - ../../sitecore-genai-code-generate:/app
+      - /app/node_modules
   frontend:
     container_name: frontend_container
     restart: always
