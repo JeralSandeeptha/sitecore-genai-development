@@ -37,6 +37,18 @@ services:
       - ../docker/ms/mongo-express:/config
     depends_on:
       - mongodb
+  rabbitmq:
+    container_name: rabbitmq_container
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "jeral"
+      RABBITMQ_DEFAULT_PASS: "1234"
+    volumes:
+      - ../docker/ms/rabbitmq:/var/lib/rabbitmq
   ##### Services #####
   users-service:
     container_name: users_container
