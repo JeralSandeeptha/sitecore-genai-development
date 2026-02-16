@@ -143,7 +143,9 @@ services:
       - BASE_URL=http://localhost:5173
       - KNOWLEDGE_API_URL=http://knowledge-service:5003
       - GATEWAY_SERVICE_URL=http://gateway-service:5000
+      - USER_SERVICE_URL=http://users-service:5001
       - RABBITMQ_SERVICE_URL=amqp://jeral:1234@rabbitmq:5672
+      - DATABASE_URL=mongodb://jeral:1234@mongodb:27017/users_db?authSource=admin
       - V0_API_KEY=${V0_API_KEY}
     volumes:
       - ../../sitecore-genai-code-generate:/app
