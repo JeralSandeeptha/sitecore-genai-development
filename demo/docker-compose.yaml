@@ -1,0 +1,130 @@
+services:
+  ##### Managed Services #####
+  qdrant:
+    container_name: qdrant_prod_container
+    image: qdrant/qdrant
+    restart: always
+    ports:
+      - "6333:6333"
+    volumes:
+      - ../docker/dbs/qdrant:/qdrant/storage
+  mongodb:
+    container_name: mongodb_prod_container
+    image: mongo:latest
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - ../docker/db/mongo:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "jeral"
+      MONGO_INITDB_ROOT_PASSWORD: "1234"
+  mongo-express:
+    container_name: mongo_express_prod_containerr
+    image: mongo-express:latest
+    restart: always
+    ports:
+      - "8082:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: "jeral"
+      ME_CONFIG_MONGODB_ADMINPASSWORD: "1234"
+      ME_CONFIG_MONGODB_SERVER: "mongodb"
+      ME_CONFIG_MONGODB_AUTH_DATABASE: "admin"
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+      ME_CONFIG_BASICAUTH_USERNAME: yohan #For browser
+      ME_CONFIG_BASICAUTH_PASSWORD: 1234 #For browser
+    volumes:
+      - ../docker/ms/mongo-express:/config
+    depends_on:
+      - mongodb
+  rabbitmq:
+    container_name: rabbitmq_prod_container
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "jeral"
+      RABBITMQ_DEFAULT_PASS: "1234"
+    volumes:
+      - ../docker/ms/rabbitmq:/var/lib/rabbitmq
+  ##### Services #####
+  ai-service:
+    container_name: ai_prod_container
+    image: jeralsandeeptha/sitecore-genai-ai-main:aa7ada62958a2f8c4cbf258bd329ea37f7ce8b10
+    restart: always
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+      - NODE_ENV=production
+      - BASE_URL=http://localhost:5173
+      - KNOWLEDGE_API_URL=http://knowledge-service:5003
+      - GATEWAY_SERVICE_URL=http://gateway-service:5000
+      - RABBITMQ_SERVICE_URL=amqp://jeral:1234@rabbitmq:5672
+  code-generator-service:
+    container_name: code_generator_prod_container
+    image: jeralsandeeptha/sitecore-genai-code-generate-main:8fda94b79b3fb749b5301ca3b8c34e9dd6bd7380
+    restart: always
+    ports:
+      - "5004:5004"
+    environment:
+      - PORT=5004
+      - NODE_ENV=production
+      - BASE_URL=http://localhost:5173
+      - KNOWLEDGE_API_URL=http://knowledge-service:5003
+      - GATEWAY_SERVICE_URL=http://gateway-service:5000
+      - USER_SERVICE_URL=http://users-service:5001
+      - RABBITMQ_SERVICE_URL=amqp://jeral:1234@rabbitmq:5672
+      - DATABASE_URL=mongodb://jeral:1234@mongodb:27017/users_db?authSource=admin
+      - V0_API_KEY=test_key
+    depends_on:
+      - mongodb
+  users-service:
+    container_name: users_prod_container
+    image: jeralsandeeptha/sitecore-genai-users-main:45aad86748ae10559f35e37a39a184ab99441540
+    restart: always
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - NODE_ENV=production
+      - BASE_URL=http://localhost:5173
+      - DATABASE_URL=mongodb://jeral:1234@mongodb:27017/users_db?authSource=admin
+    depends_on:
+      - mongodb
+  knowledge-service:
+    container_name: knowledge_prod_container
+    image: jeralsandeeptha/sitecore-genai-knowledge-main:b8e6f68ad0fc6fb46a62686c1b5c28e21412c153
+    ports:
+      - "5003:5003"
+    environment:
+      - "QDRANT_URL=http://localhost:6333"
+    depends_on:
+      - qdrant
+  gateway-service:
+    container_name: gateway_prod_container
+    image: jeralsandeeptha/sitecore-genai-gateway-main:2521c243995af51f64fe9c4db7b25cce52ef21e2
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - BASE_URL=http://localhost:5173
+      - AI_SERVICE_URL=http://ai-service:5002
+      - USER_SERVICE_URL=http://users-service:5001
+      - KNOWLEDGE_SERVICE_URL=http://knowledge-service:5003
+      - CODE_GEN_SERVICE_URL=http://code-generator-service:5004
+  frontend:
+    container_name: frontend_prod_container
+    image: jeralsandeeptha/sitecore-genai-frontend-main:0494fc2829b2bc85f757f3196d061651d8285bb6
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=production
+      - MODE=production
+      - VITE_API_URL=http://localhost:5000
+      - VITE_DOMAIN=http://localhost:5173
